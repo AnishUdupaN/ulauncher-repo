@@ -60,15 +60,15 @@ class KeywordQueryEventListener(EventListener):
 
         for item in filtered_data:
             content = item.get("contents", "").strip()
-            #lines = content.split('\n')
-            #if len(lines) > 4:
-            #    content = '\n'.join(lines[:4]) + '...'
+            is_favorite = item.get("favorite", False)
+
+            icon_path = 'images/cliplight.png' if is_favorite else 'images/clipbrown.png'
 
             items.append(ExtensionResultItem(
+                icon=icon_path,
                 name=content,
                 description="Press Enter to copy",
                 on_enter=CopyToClipboardAction(content)
-                #on_enter=CopyToClipboardAction(item.get("contents", "").strip())
             ))
 
         return RenderResultListAction(items[:num_entries])
