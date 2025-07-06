@@ -4,10 +4,12 @@
   "description": "An extension to manage and access your clipboard history.",
   "developer_name": "Gemini",
   "icon": "images/icon.png",
-  "options": [{
-    "script": "main.py",
-    "host_python": "/usr/bin/python3"
-  }],
+  "options": [
+    {
+      "script": "main.py",
+      "host_python": "/usr/bin/python3"
+    }
+  ],
   "preferences": [
     {
       "id": "clipboard_history",
@@ -31,3 +33,4 @@
     }
   ]
 }
+
