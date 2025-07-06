@@ -23,6 +23,11 @@
       "type": "select",
       "name": "Toggle Favorite",
       "description": "Hotkey to mark an item as a favorite.",
+      "options": [
+        { "name": "Alt+F", "value": "alt+f" },
+        { "name": "Alt+S", "value": "alt+s" },
+        { "name": "Alt+A", "value": "alt+a" }
+      ],
       "default_value": "alt+f"
     }
   ]
