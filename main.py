@@ -10,13 +10,19 @@ from typing import TYPE_CHECKING, Any
 
 from ulauncher.api.client.EventListener import EventListener
 from ulauncher.api.client.Extension import Extension
-from ulauncher.api.shared.action.CopyToClipboardAction import CopyToClipboardAction
+from ulauncher.api.shared.action.CopyToClipboardAction import (
+    CopyToClipboardAction,
+)
 from ulauncher.api.shared.action.DoNothingAction import DoNothingAction
 from ulauncher.api.shared.action.OpenAction import OpenAction
-from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
+from ulauncher.api.shared.action.RenderResultListAction import (
+    RenderResultListAction,
+)
 from ulauncher.api.shared.event import KeywordQueryEvent
 from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
-from ulauncher.api.shared.item.ExtensionSmallResultItem import ExtensionSmallResultItem
+from ulauncher.api.shared.item.ExtensionSmallResultItem import (
+    ExtensionSmallResultItem,
+)
 
 if TYPE_CHECKING:
     from ulauncher.api.shared.action.BaseAction import BaseAction
@@ -40,7 +46,9 @@ ExtensionPreferences = dict[str, str]
 FuzzyFinderPreferences = dict[str, Any]
 
 
-class FuzzyFinderExtension(Extension):  # pylint: disable=too-few-public-methods
+class FuzzyFinderExtension(
+    Extension
+):  # pylint: disable=too-few-public-methods  # pylint: disable=too-few-public-methods
     def __init__(self) -> None:
         super().__init__()
         self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
@@ -55,7 +63,9 @@ class FuzzyFinderExtension(Extension):  # pylint: disable=too-few-public-methods
         return bin_names
 
     @staticmethod
-    def _validate_preferences(preferences: FuzzyFinderPreferences) -> list[str]:
+    def _validate_preferences(
+        preferences: FuzzyFinderPreferences,
+    ) -> list[str]:
         logger.debug("Validating user preferences")
         errors = []
 
@@ -81,9 +91,13 @@ class FuzzyFinderExtension(Extension):  # pylint: disable=too-few-public-methods
                 "alt_enter_action": AltEnterAction(
                     int(input_preferences["alt_enter_action"])
                 ),
-                "search_type": SearchType(int(input_preferences["search_type"])),
+                "search_type": SearchType(
+                    int(input_preferences["search_type"])
+                ),
                 "allow_hidden": bool(int(input_preferences["allow_hidden"])),
-                "follow_symlinks": bool(int(input_preferences["follow_symlinks"])),
+                "follow_symlinks": bool(
+                    int(input_preferences["follow_symlinks"])
+                ),
                 "trim_display_path": bool(
                     int(input_preferences["trim_display_path"])
                 ),
@@ -94,7 +108,9 @@ class FuzzyFinderExtension(Extension):  # pylint: disable=too-few-public-methods
             }
         except (ValueError, TypeError) as e:
             logger.error("Error parsing preferences: %s", e)
-            return None, ["Invalid preference value, please check extension settings."]
+            return None, [
+                "Invalid preference value, please check extension settings."
+            ]
 
         ignore_file = input_preferences.get("ignore_file")
         if ignore_file:
@@ -107,8 +123,10 @@ class FuzzyFinderExtension(Extension):  # pylint: disable=too-few-public-methods
         return preferences, []
 
     @staticmethod
-    def _generate_fd_cmd(fd_bin: str, preferences: FuzzyFinderPreferences) -> list[str]:
-        cmd = [fd_bin, ".", preferences["base_dir"]]
+    def _generate_fd_cmd(
+        fd_bin: str, query: str, preferences: FuzzyFinderPreferences
+    ) -> list[str]:
+        cmd = [fd_bin, query, preferences["base_dir"]]
         if preferences["search_type"] == SearchType.FILES:
             cmd.extend(["--type", "f"])
         elif preferences["search_type"] == SearchType.DIRS:
@@ -128,16 +146,15 @@ class FuzzyFinderExtension(Extension):  # pylint: disable=too-few-public-methods
     def get_binaries(self) -> tuple[BinNames, list[str]]:
         logger.debug("Checking and getting binaries for dependencies")
         bin_names: BinNames = {}
-        bin_names = FuzzyFinderExtension._assign_bin_name(bin_names, "fzf_bin", "fzf")
-        bin_names = FuzzyFinderExtension._assign_bin_name(bin_names, "fd_bin", "fd")
+        bin_names = FuzzyFinderExtension._assign_bin_name(
+            bin_names, "fd_bin", "fd"
+        )
         if bin_names.get("fd_bin") is None:
             bin_names = FuzzyFinderExtension._assign_bin_name(
                 bin_names, "fd_bin", "fdfind"
             )
 
         errors = []
-        if bin_names.get("fzf_bin") is None:
-            errors.append("Missing dependency fzf. Please install fzf.")
         if bin_names.get("fd_bin") is None:
             errors.append("Missing dependency fd. Please install fd.")
 
@@ -147,26 +164,31 @@ class FuzzyFinderExtension(Extension):  # pylint: disable=too-few-public-methods
         return bin_names, errors
 
     def search(
-        self, query: str, preferences: FuzzyFinderPreferences, fd_bin: str, fzf_bin: str
+        self, query: str, preferences: FuzzyFinderPreferences, fd_bin: str
     ) -> list[str]:
         logger.debug("Finding results for %s", query)
 
-        fd_cmd = FuzzyFinderExtension._generate_fd_cmd(fd_bin, preferences)
-        with subprocess.Popen(fd_cmd, stdout=subprocess.PIPE) as fd_proc:  # noqa: S603
-            limit = preferences["result_limit"]
-            fzf_cmd = [fzf_bin, "--filter", query, "--max-results", str(limit)]
-            output = subprocess.check_output(fzf_cmd, stdin=fd_proc.stdout, text=True)  # noqa: S603
-            results = output.splitlines()
+        fd_cmd = FuzzyFinderExtension._generate_fd_cmd(
+            fd_bin, query, preferences
+        )
+        output = subprocess.check_output(fd_cmd, text=True)  # noqa: S603
+        results = output.splitlines()
 
-            logger.info("Found results: %s", results)
+        limit = preferences["result_limit"]
+        results = results[:limit]
+        logger.info("Found results: %s", results)
 
-            return results
+        return results
 
 
 class KeywordQueryEventListener(EventListener):
     @staticmethod
     def _get_dirname(path_name: str) -> str:
-        return path_name if Path(path_name).is_dir() else str(Path(path_name).parent)
+        return (
+            path_name
+            if Path(path_name).is_dir()
+            else str(Path(path_name).parent)
+        )
 
     @staticmethod
     def _no_op_result_items(
@@ -183,7 +205,9 @@ class KeywordQueryEventListener(EventListener):
         return RenderResultListAction(items)
 
     @staticmethod
-    def _get_alt_enter_action(action_type: AltEnterAction, filename: str) -> BaseAction:
+    def _get_alt_enter_action(
+        action_type: AltEnterAction, filename: str
+    ) -> BaseAction:
         # Default to opening directory, even if invalid action provided
         action = OpenAction(KeywordQueryEventListener._get_dirname(filename))
         if action_type == AltEnterAction.COPY_PATH:
@@ -191,7 +215,9 @@ class KeywordQueryEventListener(EventListener):
         return action
 
     @staticmethod
-    def _get_path_prefix(results: list[str], trim_path: bool) -> str | None:  # noqa: FBT001
+    def _get_path_prefix(
+        results: list[str], trim_path: bool
+    ) -> str | None:  # noqa: FBT001
         path_prefix = None
         if trim_path:
             common_path = path.commonpath(results)
@@ -204,7 +230,9 @@ class KeywordQueryEventListener(EventListener):
         return path_prefix
 
     @staticmethod
-    def _get_display_name(path_name: str, path_prefix: str | None = None) -> str:
+    def _get_display_name(
+        path_name: str, path_prefix: str | None = None
+    ) -> str:
         display_path = path_name
         if path_prefix is not None:
             display_path = path_name.replace(path_prefix, "...")
@@ -236,10 +264,14 @@ class KeywordQueryEventListener(EventListener):
         self, event: KeywordQueryEvent, extension: FuzzyFinderExtension
     ) -> RenderResultListAction:
         bin_names, bin_errors = extension.get_binaries()
-        preferences, pref_errors = extension.get_preferences(extension.preferences)
+        preferences, pref_errors = extension.get_preferences(
+            extension.preferences
+        )
         errors = bin_errors + pref_errors
         if errors:
-            return KeywordQueryEventListener._no_op_result_items(errors, "error")
+            return KeywordQueryEventListener._no_op_result_items(
+                errors, "error"
+            )
 
         logger.debug("Using user preferences %s", preferences)
 
@@ -250,7 +282,9 @@ class KeywordQueryEventListener(EventListener):
             )
 
         try:
-            results = extension.search(query, preferences, **bin_names)
+            results = extension.search(
+                query, preferences, fd_bin=bin_names["fd_bin"]
+            )
         except subprocess.CalledProcessError as error:
             failing_cmd = error.cmd[0]
             if failing_cmd == "fzf" and error.returncode == 1:
@@ -259,13 +293,22 @@ class KeywordQueryEventListener(EventListener):
                 )
 
             logger.debug(
-                "Subprocess %s failed with status code %s", error.cmd, error.returncode
+                "Subprocess %s failed with status code %s",
+                error.cmd,
+                error.returncode,
             )
             return KeywordQueryEventListener._no_op_result_items(
                 ["There was an error running this extension."], "error"
             )
 
-        items = KeywordQueryEventListener._generate_result_items(preferences, results)
+        if not results:
+            return KeywordQueryEventListener._no_op_result_items(
+                ["No results found."]
+            )
+
+        items = KeywordQueryEventListener._generate_result_items(
+            preferences, results
+        )
 
         return RenderResultListAction(items)
 
