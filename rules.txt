@@ -4,3 +4,4 @@ display the favourites as bold and rest as regular
 the default action for pressing the entry will be copying the selected entry.
 alt+f(changable in extension settings) at an selected option will make that entry as favourites and should change accordingly in the registry.text
 do not create any registry.txt in the cache folder.just access if the file exists
+neglect duplicate entries only if they are in consecutive order
