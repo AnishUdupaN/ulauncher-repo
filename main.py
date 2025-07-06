@@ -38,17 +38,35 @@ class KeywordQueryEventListener(EventListener):
             ])
 
         try:
+            # Check if the file is empty before attempting to load JSON
+            if os.path.getsize(gnome_clipboard_history_path) == 0:
+                return RenderResultListAction([
+                    ExtensionResultItem(
+                        icon='images/icon.png',
+                        name='Clipboard History File Empty',
+                        description='The Gnome Clipboard history file is empty.',
+                        highlightable=False
+                    )
+                ])
+
             with open(gnome_clipboard_history_path, 'r') as f:
                 registry_content = json.load(f)
 
-            # Filter and sort items (newest first, as per Gnome extension's behavior)
-            # The Gnome extension stores newest items at the end of the array, so we reverse it
-            # to show newest first in Ulauncher.
+            # Ensure registry_content is a list
+            if not isinstance(registry_content, list):
+                return RenderResultListAction([
+                    ExtensionResultItem(
+                        icon='images/icon.png',
+                        name='Error Reading Clipboard History',
+                        description='Clipboard history file contains malformed data (not a list).',
+                        highlightable=False
+                    )
+                ])
+
             clipboard_history = []
             for entry in reversed(registry_content):
                 if entry.get('mimetype', '').startswith('text/') or entry.get('mimetype', '') == 'STRING' or entry.get('mimetype', '') == 'UTF8_STRING':
                     clipboard_history.append(entry)
-                # For images, we'll just show a placeholder for now
                 elif entry.get('mimetype', '').startswith('image/'):
                     clipboard_history.append({
                         'contents': '[Image]',
@@ -77,7 +95,6 @@ class KeywordQueryEventListener(EventListener):
                             name=content,
                             description=f'Copy to clipboard (Mimetype: {entry["mimetype"]})',
                             highlightable=True,
-                            # Pass the content to the ItemEnterEvent for copying
                             on_enter=ExtensionCustomAction({'text': content}, keep_app_open=False)
                         )
                     )
@@ -87,7 +104,16 @@ class KeywordQueryEventListener(EventListener):
                 ExtensionResultItem(
                     icon='images/icon.png',
                     name='Error Reading Clipboard History',
-                    description='Could not parse registry.txt. It might be corrupted.',
+                    description='Could not parse registry.txt. It might be corrupted or not valid JSON.',
+                    highlightable=False
+                )
+            ])
+        except IOError as e: # Catch specific IO errors like permission denied
+            return RenderResultListAction([
+                ExtensionResultItem(
+                    icon='images/icon.png',
+                    name='File Access Error',
+                    description=f'Could not read registry.txt: {str(e)}. Check permissions.',
                     highlightable=False
                 )
             ])
@@ -96,7 +122,7 @@ class KeywordQueryEventListener(EventListener):
                 ExtensionResultItem(
                     icon='images/icon.png',
                     name='An unexpected error occurred',
-                    description=str(e),
+                    description=f'An unexpected error occurred: {str(e)}',
                     highlightable=False
                 )
             ])
