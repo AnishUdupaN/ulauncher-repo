@@ -1,0 +1,18 @@
+{
+  "required_api_version": "2",
+  "name": "Find File",
+  "description": "Find files and folders using fd",
+  "developer_name": "Gemini",
+  "icon": "images/icon.png",
+  "options": {
+    "script": "main.py"
+  },
+  "preferences": [
+    {
+      "id": "findfile_kw",
+      "type": "keyword",
+      "name": "Find File",
+      "default_value": "findfile"
+    }
+  ]
+}
