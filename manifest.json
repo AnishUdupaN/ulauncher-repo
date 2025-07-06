@@ -1,23 +1,24 @@
 {
   "required_api_version": "2",
-  "name": "Find File",
-  "description": "Find files and folders using fd",
+  "name": "File and Folder Search",
+  "description": "Search for files and folders on your system using 'fd' or 'fdfind'.",
   "developer_name": "Gemini",
   "icon": "images/icon.png",
   "options": {
-    "script": "main.py"
+    "query_debounce": 0.1
   },
   "preferences": [
     {
-      "id": "findfile_kw",
+      "id": "keyword",
       "type": "keyword",
-      "name": "Find File",
-      "default_value": "findfile"
+      "name": "Keyword",
+      "default_value": "fd"
     },
     {
       "id": "search_path",
-      "type": "text",
+      "type": "input",
       "name": "Search Path",
+      "description": "The default path to search in. Defaults to your home directory.",
       "default_value": "~"
     }
   ]
