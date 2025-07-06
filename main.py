@@ -40,7 +40,7 @@ ExtensionPreferences = dict[str, str]
 FuzzyFinderPreferences = dict[str, Any]
 
 
-class FuzzyFinderExtension(Extension):
+class FuzzyFinderExtension(Extension):  # pylint: disable=too-few-public-methods
     def __init__(self) -> None:
         super().__init__()
         self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
@@ -49,32 +49,23 @@ class FuzzyFinderExtension(Extension):
     def _assign_bin_name(
         bin_names: BinNames, bin_cmd: str, testing_cmd: str
     ) -> BinNames:
-        try:
-            if shutil.which(testing_cmd):
-                bin_names[bin_cmd] = testing_cmd
-        except subprocess.CalledProcessError:
-            pass
+        if shutil.which(testing_cmd):
+            bin_names[bin_cmd] = testing_cmd
 
         return bin_names
 
     @staticmethod
-    def _validate_preferences(preferences: ExtensionPreferences) -> list[str]:
+    def _validate_preferences(preferences: FuzzyFinderPreferences) -> list[str]:
         logger.debug("Validating user preferences")
         errors = []
 
         base_dir = preferences["base_dir"]
-        if not Path(Path(base_dir).expanduser()).is_dir():
+        if not Path(base_dir).is_dir():
             errors.append(f"Base directory '{base_dir}' is not a directory.")
 
         ignore_file = preferences.get("ignore_file")
-        if ignore_file and not Path(Path(ignore_file).expanduser()).is_file():
-            pass
-        try:
-            result_limit = int(preferences["result_limit"])
-            if result_limit <= 0:
-                errors.append("Result limit must be greater than 0.")
-        except ValueError:
-            errors.append("Result limit must be an integer.")
+        if ignore_file and not Path(ignore_file).is_file():
+            errors.append(f"Ignore file '{ignore_file}' is not a file.")
 
         if not errors:
             logger.debug("User preferences validated")
@@ -84,28 +75,36 @@ class FuzzyFinderExtension(Extension):
     @staticmethod
     def get_preferences(
         input_preferences: ExtensionPreferences,
-    ) -> tuple[FuzzyFinderPreferences, list[str]]:
-        preferences: FuzzyFinderPreferences = {
-            "alt_enter_action": AltEnterAction(
-                int(input_preferences.get("alt_enter_action", 0))
-            ),
-            "search_type": SearchType(int(input_preferences.get("search_type", 0))),
-            "allow_hidden": bool(int(input_preferences.get("allow_hidden", 0))),
-            "follow_symlinks": bool(int(input_preferences.get("follow_symlinks", 0))),
-            "trim_display_path": bool(
-                int(input_preferences.get("trim_display_path", 0))
-            ),
-            "result_limit": int(input_preferences.get("result_limit", 10)),
-            "base_dir": str(Path(input_preferences.get("base_dir", "~")).expanduser()),
-        }
+    ) -> tuple[FuzzyFinderPreferences | None, list[str]]:
+        try:
+            preferences: FuzzyFinderPreferences = {
+                "alt_enter_action": AltEnterAction(
+                    int(input_preferences["alt_enter_action"])
+                ),
+                "search_type": SearchType(int(input_preferences["search_type"])),
+                "allow_hidden": bool(int(input_preferences["allow_hidden"])),
+                "follow_symlinks": bool(int(input_preferences["follow_symlinks"])),
+                "trim_display_path": bool(
+                    int(input_preferences["trim_display_path"])
+                ),
+                "result_limit": int(input_preferences["result_limit"]),
+                "base_dir": str(
+                    Path(input_preferences["base_dir"]).expanduser()
+                ),
+            }
+        except (ValueError, TypeError) as e:
+            logger.error("Error parsing preferences: %s", e)
+            return None, ["Invalid preference value, please check extension settings."]
 
         ignore_file = input_preferences.get("ignore_file")
         if ignore_file:
             preferences["ignore_file"] = str(Path(ignore_file).expanduser())
 
         errors = FuzzyFinderExtension._validate_preferences(preferences)
+        if errors:
+            return None, errors
 
-        return preferences, errors
+        return preferences, []
 
     @staticmethod
     def _generate_fd_cmd(fd_bin: str, preferences: FuzzyFinderPreferences) -> list[str]:
@@ -154,12 +153,11 @@ class FuzzyFinderExtension(Extension):
 
         fd_cmd = FuzzyFinderExtension._generate_fd_cmd(fd_bin, preferences)
         with subprocess.Popen(fd_cmd, stdout=subprocess.PIPE) as fd_proc:  # noqa: S603
-            fzf_cmd = [fzf_bin, "--filter", query]
+            limit = preferences["result_limit"]
+            fzf_cmd = [fzf_bin, "--filter", query, "--max-results", str(limit)]
             output = subprocess.check_output(fzf_cmd, stdin=fd_proc.stdout, text=True)  # noqa: S603
             results = output.splitlines()
 
-            limit = preferences["result_limit"]
-            results = results[:limit]
             logger.info("Found results: %s", results)
 
             return results
