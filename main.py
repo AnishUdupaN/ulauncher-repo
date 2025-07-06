@@ -70,7 +70,15 @@ class KeywordQueryEventListener(EventListener):
         num_entries = int(extension.preferences.get('num_entries', 10))
 
         for item in sorted_entries:
-            content = item.get("contents", "").strip()
+            raw_content = item.get("contents", "").strip()
+            lines = raw_content.splitlines()
+
+            # Truncate to first 3 lines and add "..." if more than 4 lines
+            if len(lines) > 4:
+                content = "\n".join(lines[:3] + ["..."])
+            else:
+                content = "\n".join(lines)
+
             is_favorite = item.get("favorite", False)
 
             icon_path = 'images/cliplight.png' if is_favorite else 'images/clipbrown.png'
