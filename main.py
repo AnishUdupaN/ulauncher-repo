@@ -68,8 +68,7 @@ class FuzzyFinderExtension(Extension):
 
         ignore_file = preferences.get("ignore_file")
         if ignore_file and not Path(Path(ignore_file).expanduser()).is_file():
-            errors.append(f"Ignore file '{ignore_file}' is not a file.")
-
+            pass
         try:
             result_limit = int(preferences["result_limit"])
             if result_limit <= 0:

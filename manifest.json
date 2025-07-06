@@ -11,8 +11,8 @@
     {
       "id": "kw",
       "type": "keyword",
-      "name": "Fuzzy Finder",
-      "default_value": "fzf"
+      "name": "File Finder",
+      "default_value": "f"
     },
     {
       "id": "alt_enter_action",
