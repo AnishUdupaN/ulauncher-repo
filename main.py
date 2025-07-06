@@ -70,6 +70,7 @@ class KeywordQueryEventListener(EventListener):
             return RenderResultListAction([
                 ExtensionResultItem(icon='images/icon.png',
                                   name='No results found',
+                                  description='No files or folders found matching your query.',
                                   on_enter=DoNothingAction())
             ])
 
