@@ -54,7 +54,7 @@ class KeywordQueryEventListener(EventListener):
                 filtered_data.append(item)
 
         # Sort by last used timestamp
-        data.sort(key=lambda x: x.get('used', 0), reverse=True)
+        #data.sort(key=lambda x: x.get('used', 0), reverse=True)
 
         # Filter out image entries
         text_entries = [item for item in data if "text" in item.get("mimetype", "")]
