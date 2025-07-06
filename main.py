@@ -62,7 +62,8 @@ class KeywordQueryEventListener(EventListener):
         # Separate favorites and regular entries
         favorites = [item for item in text_entries if item.get("favorite")]
         regular = [item for item in text_entries if not item.get("favorite")]
-
+        favorites.reverse()
+        regular.reverse()
         # Combine favorites and regular entries, with favorites at the top
         sorted_entries = favorites + regular
 
