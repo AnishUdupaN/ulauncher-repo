@@ -1,0 +1,33 @@
+{
+  "required_api_version": "2",
+  "name": "Clipboard History",
+  "description": "An extension to manage and access your clipboard history.",
+  "developer_name": "Gemini",
+  "icon": "images/icon.png",
+  "options": {
+    "script": "main.py",
+    "host_python": "/usr/bin/python3"
+  },
+  "preferences": [
+    {
+      "id": "clipboard_history",
+      "type": "keyword",
+      "name": "Clipboard History",
+      "default_value": "ch"
+    },
+    {
+      "id": "num_entries",
+      "type": "input",
+      "name": "Number of Entries",
+      "description": "Number of clipboard entries to show.",
+      "default_value": "10"
+    },
+    {
+      "id": "toggle_favorite_key",
+      "type": "hotkey",
+      "name": "Toggle Favorite",
+      "description": "Hotkey to mark an item as a favorite.",
+      "default_value": "alt+f"
+    }
+  ]
+}
