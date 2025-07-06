@@ -47,22 +47,18 @@ class KeywordQueryEventListener(EventListener):
                                     on_enter=HideWindowAction())
             ])
 
-        # Filter by query (case-insensitive)
         filtered_data = []
         for item in data:
             content = item.get("contents", "").strip()
             if query.lower() in content.lower():
                 filtered_data.append(item)
 
-        # Filter text-only entries
-        text_entries = [item for item in filtered_data if "text" in item.get("mimetype", "")]
-
-        # Sort: favorites first, then by 'used' timestamp (desc)
-        text_entries.sort(key=lambda x: (not x.get("favorite", False), -x.get("used", 0)))
+        # Sort by last used timestamp
+        filtered_data.sort(key=lambda x: x.get('used', 0), reverse=True)
 
         num_entries = int(extension.preferences.get('num_entries', 10))
 
-        for item in text_entries[:num_entries]:
+        for item in filtered_data:
             content = item.get("contents", "").strip()
             is_favorite = item.get("favorite", False)
 
@@ -75,7 +71,7 @@ class KeywordQueryEventListener(EventListener):
                 on_enter=CopyToClipboardAction(content)
             ))
 
-        return RenderResultListAction(items)
+        return RenderResultListAction(items[:num_entries])
 
 
 if __name__ == '__main__':
