@@ -32,7 +32,7 @@ class KeywordQueryEventListener(EventListener):
                                   on_enter=DoNothingAction())
             ])
 
-        search_dir = os.path.expanduser('~')
+        search_dir = os.path.expanduser(extension.preferences.get('search_path', '~'))
         try:
             # We are using "fdfind" as command, but it can be "fd" in some systems.
             # We will check for both.
