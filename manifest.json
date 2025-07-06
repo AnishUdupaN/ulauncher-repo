@@ -24,7 +24,7 @@
     },
     {
       "id": "toggle_favorite_key",
-      "type": "hotkey",
+      "type": "select",
       "name": "Toggle Favorite",
       "description": "Hotkey to mark an item as a favorite.",
       "default_value": "alt+f"
