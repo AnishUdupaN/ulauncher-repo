@@ -32,19 +32,50 @@ class KeywordQueryEventListener(EventListener):
                                   on_enter=DoNothingAction())
             ])
 
-        search_dir = os.path.expanduser(extension.preferences.get('search_path', '~'))
+        query_parts = query.split(' ')
+        search_term = None
+        search_dir = None
+
+        # Find the path and search term from query
+        for i in range(len(query_parts), 0, -1):
+            potential_path = ' '.join(query_parts[i-1:])
+            expanded_path = os.path.expanduser(potential_path)
+            if os.path.isdir(expanded_path):
+                search_dir = expanded_path
+                search_term = ' '.join(query_parts[:i-1])
+                break
+
+        # If no path is found in query, use preferences
+        if search_dir is None:
+            search_term = query
+            search_dir = os.path.expanduser(extension.preferences.get('search_path', '~'))
+
+        if not search_term:
+             return RenderResultListAction([
+                ExtensionResultItem(icon='images/icon.png',
+                                  name='Enter search query',
+                                  on_enter=DoNothingAction())
+            ])
+
         try:
             # We are using "fdfind" as command, but it can be "fd" in some systems.
             # We will check for both.
-			
-            command = ['fdfind', query, search_dir]
+            command = ['fdfind', search_term, search_dir]
             try:
                 output = subprocess.check_output(command, text=True)
             except FileNotFoundError:
-                command = ['fd', query, search_dir]
+                command = ['fd', search_term, search_dir]
                 output = subprocess.check_output(command, text=True)
-				
+
             results = output.strip().split('\n')
+
+            if not results or results == ['']:
+                return RenderResultListAction([
+                    ExtensionResultItem(icon='images/icon.png',
+                                      name='No results found',
+                                      description='No files or folders found matching your query.',
+                                      on_enter=DoNothingAction())
+                ])
 
             items = []
             for result in results[:15]:
