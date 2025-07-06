@@ -56,14 +56,20 @@ class KeywordQueryEventListener(EventListener):
         # Sort by last used timestamp
         data.sort(key=lambda x: x.get('used', 0), reverse=True)
 
-        # Filter out image entries and then reverse the list
+        # Filter out image entries
         text_entries = [item for item in data if "text" in item.get("mimetype", "")]
-        text_entries.reverse()
+
+        # Separate favorites and regular entries
+        favorites = [item for item in text_entries if item.get("favorite")]
+        regular = [item for item in text_entries if not item.get("favorite")]
+
+        # Combine favorites and regular entries, with favorites at the top
+        sorted_entries = favorites + regular
 
 
         num_entries = int(extension.preferences.get('num_entries', 10))
 
-        for item in text_entries:
+        for item in sorted_entries:
             content = item.get("contents", "").strip()
             is_favorite = item.get("favorite", False)
 
