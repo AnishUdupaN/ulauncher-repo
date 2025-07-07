@@ -75,8 +75,8 @@ class KeywordQueryEventListener(EventListener):
             lines = raw_content.splitlines()
 
             # Truncate to first 3 lines and add "..." if more than 4 lines
-            if len(lines) > 4:
-                content = "\n".join(lines[:3] + ["..."])
+            if len(lines) > 2:
+                content = "\n".join(lines[:1] + ["..."])
             else:
                 content = "\n".join(lines)
 
@@ -96,4 +96,3 @@ class KeywordQueryEventListener(EventListener):
 
 if __name__ == '__main__':
     ClipboardHistoryExtension().run()
-
